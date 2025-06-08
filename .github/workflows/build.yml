@@ -1,16 +1,13 @@
-name: Build Plugins
+name: Build Cloudstream Plugin
 
 on:
   push:
-    branches: [ "*" ]
-  pull_request:
-    branches: [ "*" ]
+    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -24,20 +21,19 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Build all plugins
-        run: ./gradlew build --no-daemon
+      - name: Build plugin
+        run: ./gradlew :hh3dtq3Provider:assembleRelease
 
-      - name: Find all built .cs3 plugins
-        id: find_plugins
-        run: |
-          find . -name "*.cs3" > cs3_list.txt
-          echo "CS3_LIST<<EOF" >> $GITHUB_ENV
-          cat cs3_list.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Upload all plugin .cs3 files
+      - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
         with:
-          name: plugins
-          path: |
-            **/*.cs3
+          name: hh3dtq3Provider-plugin
+          path: hh3dtq3Provider/build/outputs/plugin/*.cs3
+
+      - name: Release plugin on GitHub
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: hh3dtq3Provider/build/outputs/plugin/*.cs3
+          tag: nightly
+          allowUpdates: true
+          generateReleaseNotes: true

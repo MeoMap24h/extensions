@@ -21,6 +21,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: List all gradle tasks for debugging
+        run: ./gradlew :hh3dtq3Provider:tasks --all
+
       - name: Build plugin
         run: ./gradlew :hh3dtq3Provider:packagePlugin
 

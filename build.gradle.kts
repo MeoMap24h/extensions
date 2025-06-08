@@ -21,8 +21,6 @@ allprojects {
     }
 }
 
-// Không cần cấu hình gì thêm nếu chỉ làm plugin Cloudstream.
-// Nếu cần task clean:
 tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }

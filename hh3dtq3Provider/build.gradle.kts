@@ -2,7 +2,7 @@ plugins {
     id("com.lagradost.cloudstream3.gradle")
 }
 
-version = 3
+version = 3 // Số version bạn tự tăng
 
 cloudstream {
     description = "Plugin cho trang hh3dtq3.net"

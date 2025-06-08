@@ -1,90 +1,55 @@
-import com.android.build.gradle.BaseExtension
-import com.lagradost.cloudstream3.gradle.CloudstreamExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+name: Build Cloudstream Plugin
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-        // Shitpack repo which contains our tools and dependencies
-        maven("https://jitpack.io")
-    }
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
 
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.7.3")
-        // Cloudstream gradle plugin which makes everything work and builds plugins
-        classpath("com.github.recloudstream:gradle:-SNAPSHOT")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
-    }
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-    }
-}
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
 
-fun Project.cloudstream(configuration: CloudstreamExtension.() -> Unit) = extensions.getByName<CloudstreamExtension>("cloudstream").configuration()
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-fun Project.android(configuration: BaseExtension.() -> Unit) = extensions.getByName<BaseExtension>("android").configuration()
+      - name: Build all plugins
+        run: ./gradlew build
 
-subprojects {
-    apply(plugin = "com.android.library")
-    apply(plugin = "kotlin-android")
-    apply(plugin = "com.lagradost.cloudstream3.gradle")
+      - name: List plugin outputs for debugging
+        run: find . -type f -name '*.cs3'
 
-    cloudstream {
-        // when running through github workflow, GITHUB_REPOSITORY should contain current repository name
-        // you can modify it to use other git hosting services, like gitlab
-        setRepo(System.getenv("GITHUB_REPOSITORY") ?: "https://github.com/user/repo")
-    }
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hh3dtq3Provider-plugin
+          path: hh3dtq3Provider/build/outputs/plugin/*.cs3
+          if-no-files-found: warn
 
-    android {
-        namespace = "recloudstream"
+      - name: Copy .cs3 to plugins folder (if exists)
+        run: |
+          mkdir -p plugins
+          shopt -s nullglob
+          for f in hh3dtq3Provider/build/outputs/plugin/*.cs3; do
+            cp "$f" plugins/
+          done
 
-        defaultConfig {
-            minSdk = 21
-            compileSdkVersion(35)
-            targetSdk = 35
-        }
-
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
-        }
-
-        tasks.withType<KotlinJvmCompile> {
-            compilerOptions {
-                jvmTarget.set(JvmTarget.JVM_1_8) // Required
-                freeCompilerArgs.addAll(
-                    "-Xno-call-assertions",
-                    "-Xno-param-assertions",
-                    "-Xno-receiver-assertions"
-                )
-            }
-        }
-    }
-
-    dependencies {
-        val implementation by configurations
-
-        implementation("com.github.recloudstream.cloudstream:library-jvm:master")
-
-        // These dependencies can include any of those which are added by the app,
-        // but you don't need to include any of them if you don't need them.
-        // https://github.com/recloudstream/cloudstream/blob/master/app/build.gradle.kts
-        implementation(kotlin("stdlib")) // Adds Standard Kotlin Features
-        implementation("com.github.Blatzar:NiceHttp:0.4.11") // HTTP Lib
-        implementation("org.jsoup:jsoup:1.18.3") // HTML Parser
-        // IMPORTANT: Do not bump Jackson above 2.13.1, as newer versions will
-        // break compatibility on older Android devices.
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1") // JSON Parser
-    }
-}
-
-task<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
-}
+      - name: Commit and push plugin file (if exists)
+        run: |
+          if [ -n "$(ls plugins/*.cs3 2>/dev/null)" ]; then
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git add plugins/*.cs3
+            git commit -m "Auto update plugin cs3 [skip ci]" || echo "No changes to commit"
+            git push
+          else
+            echo "No .cs3 file to commit"
+          fi

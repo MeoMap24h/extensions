@@ -1,29 +1,24 @@
-plugins {
-    id("com.android.library")
-    kotlin("android")
-    id("com.lagradost.cloudstream3.gradle")
-}
+// use an integer for version numbers
+version = 3
 
 cloudstream {
-    language = "vi"
+    // Các thuộc tính này đều có thể tuỳ chỉnh hoặc bỏ nếu không cần.
+
     description = "Plugin cho trang hh3dtq3.net"
     authors = listOf("MeoMap24h")
-}
 
-android {
-    namespace = "recloudstream"
-    compileSdk = 33
+    /**
+     * Status int as one of the following:
+     * 0: Down
+     * 1: Ok
+     * 2: Slow
+     * 3: Beta-only
+     **/
+    status = 1 // 1 = Ok, bạn có thể đổi nếu cần
 
-    defaultConfig {
-        minSdk = 21
-        targetSdk = 33
-    }
-}
+    tvTypes = listOf("Movie", "TV", "Others") // Chỉnh theo loại nội dung trang cung cấp
 
-dependencies {
-    implementation("com.github.recloudstream.cloudstream:library-jvm:master")
-    implementation("org.jsoup:jsoup:1.18.3")
-    implementation("com.github.Blatzar:NiceHttp:0.4.11")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
-    implementation(kotlin("stdlib"))
+    iconUrl = "https://www.google.com/s2/favicons?domain=hh3dtq3.net&sz=%size%"
+
+    isCrossPlatform = true
 }

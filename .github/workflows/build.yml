@@ -25,7 +25,7 @@ jobs:
         run: ./gradlew :hh3dtq3Provider:tasks --all
 
       - name: Build plugin
-        run: ./gradlew :hh3dtq3Provider:packagePlugin
+        run: ./gradlew :hh3dtq3Provider:build
 
       - name: List output directory for debugging
         run: ls -lR hh3dtq3Provider/build/outputs/ || true

@@ -1,55 +1,28 @@
-name: Build Cloudstream Plugin
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+        maven("https://maven.lagradost.cloud/maven")
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.2.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
+        classpath("com.github.recloudstream:gradle:-SNAPSHOT")
+    }
+}
 
-on:
-  push:
-    branches: [ master, main ]
-  workflow_dispatch:
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+        maven("https://maven.lagradost.cloud/maven")
+    }
+}
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
-      - name: Build all plugins
-        run: ./gradlew build
-
-      - name: List plugin outputs for debugging
-        run: find . -type f -name '*.cs3'
-
-      - name: Upload plugin artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hh3dtq3Provider-plugin
-          path: hh3dtq3Provider/build/outputs/plugin/*.cs3
-          if-no-files-found: warn
-
-      - name: Copy .cs3 to plugins folder (if exists)
-        run: |
-          mkdir -p plugins
-          shopt -s nullglob
-          for f in hh3dtq3Provider/build/outputs/plugin/*.cs3; do
-            cp "$f" plugins/
-          done
-
-      - name: Commit and push plugin file (if exists)
-        run: |
-          if [ -n "$(ls plugins/*.cs3 2>/dev/null)" ]; then
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git add plugins/*.cs3
-            git commit -m "Auto update plugin cs3 [skip ci]" || echo "No changes to commit"
-            git push
-          else
-            echo "No .cs3 file to commit"
-          fi
+// Không cần cấu hình gì thêm nếu chỉ làm plugin Cloudstream.
+// Nếu cần task clean:
+tasks.register<Delete>("clean") {
+    delete(rootProject.buildDir)
+}

@@ -1,62 +1,43 @@
-name: Build
-
-# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency
-concurrency: 
-  group: "build"
-  cancel-in-progress: true
+name: Build Plugins
 
 on:
   push:
-    branches:
-      # choose your default branch
-      - master
-      - main
-    paths-ignore:
-      - '*.md'
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@master
-        with:
-          path: "src"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Checkout builds
-        uses: actions/checkout@master
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          ref: "builds"
-          path: "builds"
-      
-      - name: Clean old builds
-        run: |
-          rm $GITHUB_WORKSPACE/builds/*.cs3 || true
-          rm $GITHUB_WORKSPACE/builds/*.jar || true
-
-      - name: Setup JDK 17
-        uses: actions/setup-java@v1
-        with:
+          distribution: 'temurin'
           java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
-      - name: Build Plugins
-        run: |
-          cd $GITHUB_WORKSPACE/src
-          chmod +x gradlew
-          ./gradlew make makePluginsJson
-          ./gradlew ensureJarCompatibility
-          cp **/build/*.cs3 $GITHUB_WORKSPACE/builds
-          cp **/build/*.jar $GITHUB_WORKSPACE/builds
-          cp build/plugins.json $GITHUB_WORKSPACE/builds
+      - name: Build all plugins
+        run: ./gradlew build --no-daemon
 
-      - name: Push builds
+      - name: Find all built .cs3 plugins
+        id: find_plugins
         run: |
-          cd $GITHUB_WORKSPACE/builds
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add .
-          git commit --amend -m "Build $GITHUB_SHA" || exit 0   # do not error if nothing to commit
-          git push --force
+          find . -name "*.cs3" > cs3_list.txt
+          echo "CS3_LIST<<EOF" >> $GITHUB_ENV
+          cat cs3_list.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Upload all plugin .cs3 files
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugins
+          path: |
+            **/*.cs3

@@ -24,6 +24,9 @@ jobs:
       - name: Build plugin
         run: ./gradlew :hh3dtq3Provider:assembleRelease
 
+      - name: List output directory for debugging
+        run: ls -lR hh3dtq3Provider/build/outputs/ || true
+
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
         with:

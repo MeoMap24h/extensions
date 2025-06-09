@@ -2,7 +2,7 @@ plugins {
     id("cloudstream-plugin")
 }
 
-version = 3 // Số version bạn tự tăng
+version = 3
 
 cloudstream {
     description = "Plugin cho trang hh3dtq3.net"

@@ -1,5 +1,5 @@
 plugins {
-    id("com.lagradost.cloudstream3.gradle")
+    id("cloudstream-plugin")
 }
 
 version = 3 // Số version bạn tự tăng

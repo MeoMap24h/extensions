@@ -1,5 +1,5 @@
 plugins {
-    id("cloudstream-plugin") version "0.0.8"
+    id("cloudstream-plugin")
 }
 
 version = 1

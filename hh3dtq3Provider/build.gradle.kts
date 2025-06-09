@@ -1,4 +1,4 @@
-apply(from = "https://raw.githubusercontent.com/recloudstream/cloudstream/master/gradle/plugin.gradle")
+apply(from = "https://raw.githubusercontent.com/recloudstream/cloudstream-extensions/master/gradle/plugin.gradle")
 
 version = 1
 

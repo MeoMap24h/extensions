@@ -1,11 +1,14 @@
-package recloudstream
+plugins {
+    id("cloudstream-plugin")
+}
 
-import com.lagradost.cloudstream3.plugins.BasePlugin
-import com.lagradost.cloudstream3.plugins.CloudstreamPlugin
+version = 1 // Lần sau tăng số này lên
 
-@CloudstreamPlugin
-class Plugin : BasePlugin() {
-    override fun load() {
-        registerMainAPI(Hh3dtq3Provider())
-    }
+cloudstream {
+    description = "Plugin cho trang hh3dtq3.net"
+    authors = listOf("MeoMap24h")
+    status = 1
+    tvTypes = listOf("Movie", "TV", "Others")
+    iconUrl = "https://www.google.com/s2/favicons?domain=hh3dtq3.net&sz=%size%"
+    isCrossPlatform = true
 }

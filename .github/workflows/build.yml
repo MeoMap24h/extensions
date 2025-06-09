@@ -8,59 +8,57 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: 17
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
 
-      - name: List all gradle tasks for debugging
-        run: ./gradlew :hh3dtq3Provider:tasks --all
+    - name: Build plugin
+      run: ./gradlew :hh3dtq3Provider:assembleRelease
 
-      - name: Build plugin
-        run: ./gradlew :hh3dtq3Provider:build
+    - name: List output directory for debugging
+      run: ls -lR hh3dtq3Provider/build/outputs/ || true
 
-      - name: List output directory for debugging
-        run: ls -lR hh3dtq3Provider/build/outputs/ || true
+    - name: Upload plugin artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hh3dtq3Provider-plugin
+        path: hh3dtq3Provider/build/outputs/plugin/*.cs3
+        if-no-files-found: warn
 
-      - name: Upload plugin artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: hh3dtq3Provider-plugin
-          path: hh3dtq3Provider/build/outputs/plugin/*.cs3
-          if-no-files-found: warn
+    - name: Release plugin on GitHub
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: hh3dtq3Provider/build/outputs/plugin/*.cs3
+        tag: nightly
+        allowUpdates: true
+        generateReleaseNotes: true
 
-      - name: Release plugin on GitHub
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: hh3dtq3Provider/build/outputs/plugin/*.cs3
-          tag: nightly
-          allowUpdates: true
-          generateReleaseNotes: true
+    - name: Copy .cs3 to plugins folder (if exists)
+      run: |
+        mkdir -p plugins
+        shopt -s nullglob
+        for f in hh3dtq3Provider/build/outputs/plugin/*.cs3; do
+          cp "$f" plugins/
+        done
 
-      - name: Copy .cs3 to plugins folder (if exists)
-        run: |
-          mkdir -p plugins
-          shopt -s nullglob
-          for f in hh3dtq3Provider/build/outputs/plugin/*.cs3; do
-            cp "$f" plugins/
-          done
-
-      - name: Commit and push plugin file (if exists)
-        run: |
-          if [ -n "$(ls plugins/*.cs3 2>/dev/null)" ]; then
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git add plugins/*.cs3
-            git commit -m "Auto update plugin cs3 [skip ci]" || echo "No changes to commit"
-            git push
-          else
-            echo "No .cs3 file to commit"
-          fi
+    - name: Commit and push plugin file (if exists)
+      run: |
+        if [ -n "$(ls plugins/*.cs3 2>/dev/null)" ]; then
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add plugins/*.cs3
+          git commit -m "Auto update plugin cs3 [skip ci]" || echo "No changes to commit"
+          git push
+        else
+          echo "No .cs3 file to commit"
+        fi

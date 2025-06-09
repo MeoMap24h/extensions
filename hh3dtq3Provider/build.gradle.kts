@@ -1,6 +1,4 @@
-plugins {
-    id("cloudstream-plugin")
-}
+apply(from = "https://raw.githubusercontent.com/recloudstream/cloudstream/master/gradle/plugin.gradle")
 
 version = 1
 
